@@ -1,6 +1,6 @@
 import streamlit as st
-from sentence_transformers import SentenceTransformer
 import faiss
+from sentence_transformers import SentenceTransformer
 import pickle
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
