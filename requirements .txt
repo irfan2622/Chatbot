@@ -1,5 +1,5 @@
 streamlit
-sentence_transformers
+sentence-transformers
 faiss-cpu
 google-api-python-client
 google-auth
