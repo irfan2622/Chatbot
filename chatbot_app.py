@@ -4,10 +4,15 @@ from sentence_transformers import SentenceTransformer
 import pickle
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import gdown
+
+# Fungsi untuk mengunduh file dari Google Drive
+def download_file_from_drive(file_url, output_path):
+    gdown.download(file_url, output_path, quiet=False)
 
 # Fungsi untuk memuat data
-def load_data(file):
-    with open(file, 'rb') as f:
+def load_data(filepath='chatbot_data.pkl'):
+    with open(filepath, 'rb') as f:
         index, sentence_model, sentences, summaries = pickle.load(f)
     return index, sentence_model, sentences, summaries
 
@@ -48,30 +53,40 @@ def main():
     st.title("Chatbot AI")
     st.write("Interaksi dengan dokumen Anda menggunakan AI.")
 
-    # Upload file chatbot_data.pkl
+    # Input link Google Drive
     st.sidebar.title("Konfigurasi")
-    uploaded_file = st.sidebar.file_uploader("Upload file chatbot_data.pkl", type="pkl")
+    google_drive_url = st.sidebar.text_input("Masukkan Google Drive URL untuk chatbot_data.pkl", "https://drive.google.com/uc?id=FILE_ID")
 
-    if uploaded_file is not None:
+    # Tentukan path tempat file chatbot_data.pkl akan diunduh
+    download_path = "chatbot_data.pkl"
+
+    # Mengunduh file dari Google Drive
+    if google_drive_url:
         try:
-            index, sentence_model, sentences, summaries = load_data(uploaded_file)
-            st.sidebar.success("Data berhasil dimuat.")
+            download_file_from_drive(google_drive_url, download_path)
+            st.sidebar.success("File berhasil diunduh dari Google Drive.")
         except Exception as e:
-            st.sidebar.error(f"Gagal memuat data: {e}")
+            st.sidebar.error(f"Gagal mengunduh file: {e}")
             st.stop()
 
-        # Input pertanyaan pengguna
-        queries = st.text_area("Masukkan pertanyaan Anda (pisahkan dengan ';' untuk pertanyaan ganda):")
-        if st.button("Ajukan Pertanyaan"):
-            if not queries.strip():
-                st.warning("Masukkan setidaknya satu pertanyaan.")
-            else:
-                queries_list = queries.split(";")
-                responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
-                for response in responses:
-                    st.markdown(response)
-    else:
-        st.sidebar.warning("Silakan upload file chatbot_data.pkl untuk melanjutkan.")
+    # Memuat data chatbot
+    try:
+        index, sentence_model, sentences, summaries = load_data(download_path)
+        st.sidebar.success("Data berhasil dimuat.")
+    except Exception as e:
+        st.sidebar.error("Gagal memuat data.")
+        st.stop()
+
+    # Input pertanyaan pengguna
+    queries = st.text_area("Masukkan pertanyaan Anda (pisahkan dengan ';' untuk pertanyaan ganda):")
+    if st.button("Ajukan Pertanyaan"):
+        if not queries.strip():
+            st.warning("Masukkan setidaknya satu pertanyaan.")
+        else:
+            queries_list = queries.split(";")
+            responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
+            for response in responses:
+                st.markdown(response)
 
 if __name__ == '__main__':
     main()
