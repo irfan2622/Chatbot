@@ -55,7 +55,7 @@ def main():
 
     # Input link Google Drive
     st.sidebar.title("Konfigurasi")
-    google_drive_url = st.sidebar.text_input("Masukkan Google Drive URL untuk chatbot_data.pkl", "https://drive.google.com/uc?id=FILE_ID")
+    google_drive_url = st.sidebar.text_input("Masukkan Google Drive URL untuk chatbot_data.pkl")
 
     # Tentukan path tempat file chatbot_data.pkl akan diunduh
     download_path = "chatbot_data.pkl"
