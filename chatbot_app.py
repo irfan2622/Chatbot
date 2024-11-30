@@ -8,7 +8,7 @@ import os
 # Fungsi untuk mengunduh file dari Google Drive
 def download_from_drive(output_file):
     # Link Google Drive dengan FILE_ID tetap
-    drive_url = "https://drive.google.com/file/d/1PbTbPboHnqs-eCr63gzYrTC1Ub0XwSaw/view?usp=drive_link"
+    drive_url = "https://drive.google.com/file/d/1PbTbPboHnqs-eCr63gzYrTC1Ub0XwSaw"
     
     try:
         # Download file dari Google Drive
