@@ -1,14 +1,27 @@
 import streamlit as st
-import faiss
 from sentence_transformers import SentenceTransformer
+import faiss
 import pickle
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-import gdown
+import requests
+import os
 
 # Fungsi untuk mengunduh file dari Google Drive
-def download_file_from_drive(file_url, output_path):
-    gdown.download(file_url, output_path, quiet=False)
+def download_from_drive(output_file):
+    # Link Google Drive dengan FILE_ID tetap
+    drive_url = "https://drive.google.com/uc?id=1PbTbPboHnqs-eCr63gzYrTC1Ub0XwSaw&export=download"
+    
+    try:
+        # Download file dari Google Drive
+        response = requests.get(drive_url, stream=True)
+        if response.status_code == 200:
+            with open(output_file, 'wb') as f:
+                f.write(response.content)
+            return output_file
+        else:
+            raise Exception(f"Gagal mengunduh file dari Google Drive. Status code: {response.status_code}")
+    except Exception as e:
+        st.error(f"Error saat mengunduh file: {e}")
+        st.stop()
 
 # Fungsi untuk memuat data
 def load_data(filepath='chatbot_data.pkl'):
@@ -53,28 +66,18 @@ def main():
     st.title("Chatbot AI")
     st.write("Interaksi dengan dokumen Anda menggunakan AI.")
 
-    # Input link Google Drive
-    st.sidebar.title("Konfigurasi")
-    google_drive_url = st.sidebar.text_input("Masukkan Google Drive URL untuk chatbot_data.pkl")
+    # Lokasi file unduhan sementara
+    temp_file = "chatbot_data.pkl"
 
-    # Tentukan path tempat file chatbot_data.pkl akan diunduh
-    download_path = "chatbot_data.pkl"
-
-    # Mengunduh file dari Google Drive
-    if google_drive_url:
-        try:
-            download_file_from_drive(google_drive_url, download_path)
-            st.sidebar.success("File berhasil diunduh dari Google Drive.")
-        except Exception as e:
-            st.sidebar.error(f"Gagal mengunduh file: {e}")
-            st.stop()
-
-    # Memuat data chatbot
     try:
-        index, sentence_model, sentences, summaries = load_data(download_path)
+        # Unduh file dari Google Drive
+        download_from_drive(temp_file)
+
+        # Memuat data dari file yang diunduh
+        index, sentence_model, sentences, summaries = load_data(temp_file)
         st.sidebar.success("Data berhasil dimuat.")
     except Exception as e:
-        st.sidebar.error("Gagal memuat data.")
+        st.sidebar.error(f"Gagal memuat data: {e}")
         st.stop()
 
     # Input pertanyaan pengguna
