@@ -6,8 +6,8 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 # Fungsi untuk memuat data
-def load_data(filepath='chatbot_data.pkl'):
-    with open(filepath, 'rb') as f:
+def load_data(file):
+    with open(file, 'rb') as f:
         index, sentence_model, sentences, summaries = pickle.load(f)
     return index, sentence_model, sentences, summaries
 
@@ -48,27 +48,30 @@ def main():
     st.title("Chatbot AI")
     st.write("Interaksi dengan dokumen Anda menggunakan AI.")
 
-    # Memuat data chatbot
+    # Upload file chatbot_data.pkl
     st.sidebar.title("Konfigurasi")
-    data_path = st.sidebar.text_input("Path ke file data (chatbot_data.pkl)", "chatbot_data.pkl")
+    uploaded_file = st.sidebar.file_uploader("Upload file chatbot_data.pkl", type="pkl")
 
-    try:
-        index, sentence_model, sentences, summaries = load_data(data_path)
-        st.sidebar.success("Data berhasil dimuat.")
-    except Exception as e:
-        st.sidebar.error("Gagal memuat data.")
-        st.stop()
+    if uploaded_file is not None:
+        try:
+            index, sentence_model, sentences, summaries = load_data(uploaded_file)
+            st.sidebar.success("Data berhasil dimuat.")
+        except Exception as e:
+            st.sidebar.error(f"Gagal memuat data: {e}")
+            st.stop()
 
-    # Input pertanyaan pengguna
-    queries = st.text_area("Masukkan pertanyaan Anda (pisahkan dengan ';' untuk pertanyaan ganda):")
-    if st.button("Ajukan Pertanyaan"):
-        if not queries.strip():
-            st.warning("Masukkan setidaknya satu pertanyaan.")
-        else:
-            queries_list = queries.split(";")
-            responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
-            for response in responses:
-                st.markdown(response)
+        # Input pertanyaan pengguna
+        queries = st.text_area("Masukkan pertanyaan Anda (pisahkan dengan ';' untuk pertanyaan ganda):")
+        if st.button("Ajukan Pertanyaan"):
+            if not queries.strip():
+                st.warning("Masukkan setidaknya satu pertanyaan.")
+            else:
+                queries_list = queries.split(";")
+                responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
+                for response in responses:
+                    st.markdown(response)
+    else:
+        st.sidebar.warning("Silakan upload file chatbot_data.pkl untuk melanjutkan.")
 
 if __name__ == '__main__':
     main()
