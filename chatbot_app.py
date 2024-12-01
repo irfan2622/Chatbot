@@ -4,6 +4,7 @@ import faiss
 import pickle
 import gdown
 import os
+import numpy as np
 
 # URL Google Drive untuk file chatbot_data.pkl
 GDRIVE_URL = "https://drive.google.com/uc?id=1PbTbPboHnqs-eCr63gzYrTC1Ub0XwSaw"
@@ -25,9 +26,21 @@ def load_data(filepath='chatbot_data.pkl'):
 
 # Fungsi chatbot
 def chatbot(queries, index, sentence_model, sentences, summaries, top_k=3):
-    query_embeddings = sentence_model.encode(queries)
-    D, I = index.search(query_embeddings, k=top_k)
+    # Encode queries menjadi embeddings
+    query_embeddings = sentence_model.encode(queries, convert_to_numpy=True)
 
+    # Pastikan query_embeddings adalah array numpy 2D
+    if len(query_embeddings.shape) == 1:
+        query_embeddings = np.expand_dims(query_embeddings, axis=0)
+
+    # Cek apakah indeks sudah terisi data
+    if index.ntotal == 0:
+        raise ValueError("Indeks FAISS kosong. Pastikan indeks telah diisi dengan data.")
+
+    # Lakukan pencarian di FAISS
+    D, I = index.search(query_embeddings, top_k)
+
+    # Mengolah hasil pencarian
     responses = []
     for query, indices in zip(queries, I):
         relevant_sentences = []
