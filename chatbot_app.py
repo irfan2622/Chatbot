@@ -20,9 +20,14 @@ def download_from_gdrive(file_url, output_path):
 
 # Fungsi untuk memuat data
 def load_data(filepath='chatbot_data.pkl'):
-    with open(filepath, 'rb') as f:
-        index, sentence_model, sentences, summaries = pickle.load(f)
-    return index, sentence_model, sentences, summaries
+    try:
+        with open(filepath, 'rb') as f:
+            index, sentence_model, sentences, summaries = pickle.load(f)
+        if not isinstance(index, faiss.Index):
+            raise ValueError("Objek yang dimuat bukan indeks FAISS valid.")
+        return index, sentence_model, sentences, summaries
+    except Exception as e:
+        raise RuntimeError(f"Gagal memuat data dari {filepath}: {e}")
 
 # Fungsi chatbot
 def chatbot(queries, index, sentence_model, sentences, summaries, top_k=3):
@@ -99,10 +104,13 @@ def main():
         if not queries.strip():
             st.warning("Masukkan setidaknya satu pertanyaan.")
         else:
-            queries_list = queries.split(";")
-            responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
-            for response in responses:
-                st.markdown(response)
+            queries_list = [q.strip() for q in queries.split(";") if q.strip()]
+            try:
+                responses = chatbot(queries_list, index, sentence_model, sentences, summaries)
+                for response in responses:
+                    st.markdown(response)
+            except Exception as e:
+                st.error(f"Terjadi kesalahan saat memproses pertanyaan: {e}")
 
 if __name__ == '__main__':
     main()
